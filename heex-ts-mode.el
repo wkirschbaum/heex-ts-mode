@@ -89,6 +89,9 @@
 (defconst heex-ts-mode--brackets-vector
   (apply #'vector heex-ts-mode--brackets))
 
+(defvar heex-ts-mode-default-grammar-sources
+  '((heex . ("https://github.com/phoenixframework/tree-sitter-heex.git"))))
+
 (defvar heex-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\{ "(}" table)
@@ -175,6 +178,29 @@ Return nil if NODE is not a defun node or doesn't have a name."
                    (treesit-node-child (treesit-node-child node 0) 1)
                    nil)))
     (_ nil)))
+
+(defun heex-ts-install-grammar ()
+  "Experimental function to install the tree-sitter-heex grammar."
+  (interactive)
+  (if (and (treesit-available-p) (boundp 'treesit-language-source-alist))
+      (let ((treesit-language-source-alist
+             (append
+              treesit-language-source-alist
+              elixir-ts-mode-default-grammar-sources)))
+        (if (y-or-n-p
+             (format
+              (concat "The following language grammar repository which will be "
+                      "downloaded and installed "
+                      "%s, proceed?")
+              (cadr (assoc 'heex treesit-language-source-alist))))
+            (progn
+              (treesit-install-language-grammar 'elixir)
+              (treesit-install-language-grammar 'heex))))
+    (display-warning
+     'treesit
+     (concat "Cannot install grammar because"
+             " "
+             "tree-sitter library is not compiled with Emacs"))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode))
