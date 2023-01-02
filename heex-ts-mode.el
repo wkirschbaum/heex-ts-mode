@@ -34,6 +34,7 @@
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-install-language-grammar "treesit.el")
 
 (defcustom heex-ts-mode-indent-offset 2
   "Indentation of Heex statements."
@@ -186,7 +187,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
       (let ((treesit-language-source-alist
              (append
               treesit-language-source-alist
-              elixir-ts-mode-default-grammar-sources)))
+              heex-ts-mode-default-grammar-sources)))
         (if (y-or-n-p
              (format
               (concat "The following language grammar repository which will be "
