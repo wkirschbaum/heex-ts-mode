@@ -203,6 +203,17 @@ Return nil if NODE is not a defun node or doesn't have a name."
              " "
              "tree-sitter library is not compiled with Emacs"))))
 
+(defun heex-ts-mode-treesit-ready-p ()
+  (let ((language-version 14))
+    (and (treesit-ready-p 'heex)
+         (if (< (treesit-language-abi-version 'heex) language-version)
+             (progn
+               (display-warning
+                'treesit
+                (format "Cannot activate tree-sitter for %s, because tree-sitter language version %s or later is required" "heex-ts-mode" language-version))
+               nil)
+           t))))
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode))
 
@@ -220,7 +231,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
   (setq-local comment-end-skip (rx (* (syntax whitespace))
                                    (group (or "-->"))))
 
-  (when (and (treesit-ready-p 'heex))
+  (when (heex-ts-mode-treesit-ready-p)
     (treesit-parser-create 'heex)
 
     (setq-local comment-region-function 'heex-ts-mode--comment-region)
