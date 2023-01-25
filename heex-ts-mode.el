@@ -214,6 +214,14 @@ Return nil if NODE is not a defun node or doesn't have a name."
                nil)
            t))))
 
+(defun heex-ts-mode--forward-sexp (&optional arg)
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (funcall
+   (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
+   (rx (or "tag" "component" "slot"))
+   (abs arg)))
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode))
 
@@ -235,6 +243,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (treesit-parser-create 'heex)
 
     (setq-local comment-region-function 'heex-ts-mode--comment-region)
+
+    (setq-local forward-sexp-function #'heex-ts-mode--forward-sexp)
 
     ;; Electric.
     (setq-local electric-indent-chars
