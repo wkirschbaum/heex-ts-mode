@@ -231,7 +231,9 @@ Return nil if NODE is not a defun node or doesn't have a name."
   (or arg (setq arg 1))
   (funcall
    (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
-   (rx (or "tag" "component" "slot"))
+   (rx bol
+       (or "attribute" "directive" "tag" "component" "slot")
+       eol)
    (abs arg)))
 
 ;;;###autoload
