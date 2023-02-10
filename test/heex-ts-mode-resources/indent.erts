@@ -17,3 +17,31 @@ Name: Tag
   div
 </div>
 =-=-=
+
+Name: Component
+
+=-=
+   <Foo>
+     foobar
+      </Foo>
+=-=
+<Foo>
+  foobar
+</Foo>
+=-=-=
+
+Name: Slots
+
+=-=
+   <Foo>
+   <:bar>
+     foobar
+      </:bar>
+      </Foo>
+=-=
+<Foo>
+  <:bar>
+    foobar
+  </:bar>
+</Foo>
+=-=-=
