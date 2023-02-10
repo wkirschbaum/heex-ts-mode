@@ -11,7 +11,7 @@ build.sh:
 test: dist
 	emacs -batch -l ert \
 	-l heex-ts-mode.el \
-	-l ./test/heex-ts-tests.el \
+	-l ./test/heex-ts-mode-tests.el \
 	--eval "(add-to-list 'treesit-extra-load-path \"./dist\")" \
 	-f ert-run-tests-batch-and-exit
 
