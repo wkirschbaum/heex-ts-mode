@@ -121,7 +121,17 @@
 (defvar heex-ts-mode--indent-rules
   (let ((offset heex-ts-mode-indent-offset))
     `((heex
-       ((parent-is "fragment") point-min 0)
+       ((parent-is "fragment")
+        (lambda (node parent &rest _)
+          ;; if heex is embedded indent to parent
+          ;; otherwise indent to the bol
+          (if (eq (treesit-language-at (point-min)) 'heex)
+              (point-min)
+            (save-excursion
+              (goto-char (treesit-node-start parent))
+              (back-to-indentation)
+              (point))
+            )) 0)
        ((node-is "end_tag") parent-bol 0)
        ((node-is "end_component") parent-bol 0)
        ((node-is "end_slot") parent-bol 0)
