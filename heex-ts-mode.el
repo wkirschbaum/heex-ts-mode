@@ -270,10 +270,6 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
     (setq-local forward-sexp-function #'heex-ts-mode--forward-sexp)
 
-    ;; Electric.
-    (setq-local electric-indent-chars
-                (append ">" electric-indent-chars))
-
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
                 (rx bol (or "component" "tag" "slot") eol))
