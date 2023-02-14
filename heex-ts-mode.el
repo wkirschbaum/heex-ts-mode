@@ -27,17 +27,6 @@
 ;; This package defines heex-ts-mode which is a major mode for editing
 ;; Elixir and Heex files.
 
-;; Features
-
-;; * Indent
-
-;; elixir-ts-mode tries to replicate the indentation provided by
-;; mix format, but will come with some minor differences.
-
-;; * IMenu
-;; * Navigation
-;; * Which-fun
-
 ;;; Code:
 
 (require 'treesit)
@@ -55,46 +44,6 @@
   :safe 'integerp
   :group 'heex)
 
-(defface heex-ts-font-keyword-face
-  '((t (:inherit font-lock-keyword-face)))
-  "For use with @keyword tag.")
-
-(defface heex-ts-font-bracket-face
-  '((t (:inherit default)))
-  "For use with @keyword tag.")
-
-(defface heex-ts-font-constant-face
-  '((t (:inherit font-lock-doc-face)))
-  "For use with @keyword tag.")
-
-(defface heex-ts-font-comment-face
-  '((t (:inherit font-lock-comment-face)))
-  "For use with @keyword tag.")
-
-(defface heex-ts-font-tag-face
-  '((t (:inherit font-lock-function-name-face)))
-  "For use with @tag tag.")
-
-(defface heex-ts-font-attribute-face
-  '((t (:inherit font-lock-variable-name-face)))
-  "For use with @keyword tag.")
-
-(defface heex-ts-font-string-face
-  '((t (:inherit font-lock-constant-face)))
-  "For use with @keyword tag.")
-
-(defface heex-ts-font-module-face
-  '((t (:inherit font-lock-keyword-face)))
-  "For use with @keyword tag.")
-
-(defface heex-ts-font-function-face
-  '((t (:inherit font-lock-keyword-face)))
-  "For use with @keyword tag.")
-
-(defface heex-ts-font-delimeter-face
-  '((t (:inherit font-lock-keyword-face)))
-  "For use with @keyword tag.")
-
 (defconst heex-ts-mode--brackets
   '("%>" "--%>" "-->" "/>" "<!" "<!--" "<" "<%!--" "<%" "<%#"
     "<%%=" "<%=" "</" "</:" "<:" ">" "{" "}"))
@@ -104,15 +53,6 @@
 
 (defvar heex-ts-mode-default-grammar-sources
   '((heex . ("https://github.com/phoenixframework/tree-sitter-heex.git"))))
-
-(defvar heex-ts-mode--syntax-table
-  (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?\{ "(}" table)
-    (modify-syntax-entry ?\} "){" table)
-    (modify-syntax-entry ?< "(>" table)
-    (modify-syntax-entry ?> ")<" table)
-    table)
-  "Heex mode syntax table.")
 
 ;; There seems to be no parent directive block
 ;; so we ignore it for until we learn how heex treesit
@@ -135,50 +75,47 @@
        ((node-is "end_tag") parent-bol 0)
        ((node-is "end_component") parent-bol 0)
        ((node-is "end_slot") parent-bol 0)
+       ((node-is "/>") parent-bol 0)
        ((node-is ">") parent-bol 0)
+       ((parent-is "comment") prev-adaptive-prefix 0)
        ((parent-is "component") parent-bol ,offset)
-       ((parent-is "slot") parent-bol ,offset)
        ((parent-is "tag") parent-bol ,offset)
+       ((parent-is "start_tag") parent-bol ,offset)
+       ((parent-is "component") parent-bol ,offset)
+       ((parent-is "start_component") parent-bol ,offset)
+       ((parent-is "slot") parent-bol ,offset)
+       ((parent-is "start_slot") parent-bol ,offset)
+       ((parent-is "self_closing_tag") parent-bol ,offset)
        (no-node parent-bol ,offset)))))
 
 (defvar heex-ts-mode--font-lock-settings
   (when (treesit-available-p)
     (treesit-font-lock-rules
      :language 'heex
-     :feature 'heex-doctype
-     '((doctype) @heex-ts-font-constant-face)
-
-     :language 'heex
      :feature 'heex-comment
-     '((comment) @heex-ts-font-comment-face)
-
+     '((comment) @font-lock-comment-face)
      :language 'heex
-     :feature 'heex-bracket
-     `(,heex-ts-mode--brackets-vector @heex-ts-font-bracket-face)
-
+     :feature 'heex-doctype
+     '((doctype) @font-lock-doc-face)
      :language 'heex
      :feature 'heex-tag
-     `([(tag_name) (slot_name)] @heex-ts-font-tag-face)
-
+     `([(tag_name) (slot_name)] @font-lock-function-name-face)
      :language 'heex
      :feature 'heex-attribute
-     `((attribute_name) @heex-ts-font-attribute-face)
-
+     `((attribute_name) @font-lock-variable-name-face)
      :language 'heex
      :feature 'heex-keyword
-     `((special_attribute_name) @heex-ts-font-keyword-face)
-
+     `((special_attribute_name) @font-lock-keyword-face)
      :language 'heex
      :feature 'heex-string
-     `([(attribute_value) (quoted_attribute_value)] @heex-ts-font-string-face)
-
+     `([(attribute_value) (quoted_attribute_value)] @font-lock-constant-face)
      :language 'heex
      :feature 'heex-component
      `([
-        (component_name) @heex-ts-font-tag-face
-        (module) @heex-ts-font-module-face
-        (function) @heex-ts-font-function-face
-        "." @heex-ts-font-delimeter-face
+        (component_name) @font-lock-function-name-face
+        (module) @font-lock-keyword-face
+        (function) @font-lock-keyword-face
+        "." @font-lock-keyword-face
         ])))
   "Tree-sitter font-lock settings.")
 
@@ -197,9 +134,9 @@
 Return nil if NODE is not a defun node or doesn't have a name."
   (pcase (treesit-node-type node)
     ((or "component" "slot" "tag")
-     (string-trim (treesit-node-text
-                   (treesit-node-child (treesit-node-child node 0) 1)
-                   nil)))
+     (string-trim
+      (treesit-node-text
+       (treesit-node-child (treesit-node-child node 0) 1) nil)))
     (_ nil)))
 
 (defun heex-ts-install-grammar ()
@@ -250,23 +187,16 @@ Return nil if NODE is not a defun node or doesn't have a name."
 (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode))
 
 ;;;###autoload
-(define-derived-mode heex-ts-mode prog-mode "Heex"
+(define-derived-mode heex-ts-mode html-mode "Heex"
   "Major mode for editing Heex, powered by tree-sitter."
   :group 'heex
-  :syntax-table heex-ts-mode--syntax-table
-
-  ;; Comments.
-  (setq-local comment-start "<!-- ")
-  (setq-local comment-start-skip (rx (or "<!--")
-                                     (* (syntax whitespace))))
-  (setq-local comment-end "-->")
-  (setq-local comment-end-skip (rx (* (syntax whitespace))
-                                   (group (or "-->"))))
 
   (when (heex-ts-mode-treesit-ready-p)
     (treesit-parser-create 'heex)
 
-    (setq-local comment-region-function 'heex-ts-mode--comment-region)
+    ;; Comments
+    (setq-local treesit-text-type-regexp
+                (regexp-opt '("comment" "text")))
 
     (setq-local forward-sexp-function #'heex-ts-mode--forward-sexp)
 
@@ -286,9 +216,9 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (setq-local treesit-simple-indent-rules heex-ts-mode--indent-rules)
 
     (setq-local treesit-font-lock-feature-list
-                '(( heex-doctype heex-comment )
-                  ( heex-string heex-keyword heex-component heex-tag heex-attribute )
-                  ( heex-bracket )))
+                '(( heex-comment heex-keyword heex-doctype )
+                  ( heex-component heex-tag heex-attribute heex-string )
+                  () ()))
 
     (treesit-major-mode-setup)))
 
