@@ -1,5 +1,7 @@
 # Heex Major Mode using tree-sitter
 
+[![MELPA](https://melpa.org/packages/heex-ts-mode-badge.svg)](https://melpa.org/#/heex-ts-mode)
+
 Using [tree-sitter](https://tree-sitter.github.io/tree-sitter/) for font-lock, indentation, imenu and navigation.
 
 This package is a dependency for and should be used with
