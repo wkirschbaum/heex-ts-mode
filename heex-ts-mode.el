@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022, 2023 Wilhelm H Kirschbaum
 
 ;; Author           : Wilhelm H Kirschbaum
-;; Version          : 1.1
+;; Version          : 1.2
 ;; URL              : https://github.com/wkirschbaum/elixir-ts-mode
 ;; Package-Requires : ((emacs "29"))
 ;; Created          : November 2022
@@ -35,42 +35,37 @@
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-start "treesit.c")
 (declare-function treesit-install-language-grammar "treesit.el")
 
-(defcustom heex-ts-mode-indent-offset 2
-  "Indentation of Heex statements."
-  :version "29.1"
+(defgroup heex-ts nil
+  "Major mode for editing HEEx code."
+  :prefix "heex-ts-"
+  :group 'langauges)
+
+(defcustom heex-ts-indent-offset 2
+  "Indentation of HEEx statements."
+  :version "30.1"
   :type 'integer
   :safe 'integerp
-  :group 'heex)
+  :group 'heex-ts)
 
-(defconst heex-ts-mode--brackets
-  '("%>" "--%>" "-->" "/>" "<!" "<!--" "<" "<%!--" "<%" "<%#"
-    "<%%=" "<%=" "</" "</:" "<:" ">" "{" "}"))
-
-(defconst heex-ts-mode-sexp-regexp
+(defconst heex-ts-sexp-regexp
   (rx bol
       (or "directive" "tag" "component" "slot"
           "attribute" "attribute_value" "quoted_attribute_value")
       eol))
 
-(defconst heex-ts-mode--brackets-vector
-  (apply #'vector heex-ts-mode--brackets))
-
-(defvar heex-ts-mode-default-grammar-sources
-  '((heex . ("https://github.com/phoenixframework/tree-sitter-heex.git"))))
-
-;; There seems to be no parent directive block
-;; so we ignore it for until we learn how heex treesit
-;; represents directive blocks
+;; There seems to be no parent directive block for tree-sitter-heex,
+;; so we ignore them for now until we learn how to query them.
 ;; https://github.com/phoenixframework/tree-sitter-heex/issues/28
-(defvar heex-ts-mode--indent-rules
-  (let ((offset heex-ts-mode-indent-offset))
+(defvar heex-ts--indent-rules
+  (let ((offset heex-ts-indent-offset))
     `((heex
        ((parent-is "fragment")
         (lambda (node parent &rest _)
-          ;; if heex is embedded indent to parent
-          ;; otherwise indent to the bol
+          ;; If HEEx is embedded indent to parent
+          ;; otherwise indent to the bol.
           (if (eq (treesit-language-at (point-min)) 'heex)
               (point-min)
             (save-excursion
@@ -94,7 +89,7 @@
        ((parent-is "self_closing_tag") parent-bol ,offset)
        (no-node parent-bol ,offset)))))
 
-(defvar heex-ts-mode--font-lock-settings
+(defvar heex-ts--font-lock-settings
   (when (treesit-available-p)
     (treesit-font-lock-rules
      :language 'heex
@@ -125,17 +120,7 @@
         ])))
   "Tree-sitter font-lock settings.")
 
-(defun heex-ts-mode--comment-region (beg end &optional _arg)
-  "Comments the region between BEG and END."
-  (save-excursion
-    (goto-char beg)
-    (insert comment-start " ")
-    (goto-char end)
-    (goto-char (pos-eol))
-    (forward-comment (- (point-max)))
-    (insert " " comment-end)))
-
-(defun heex-ts-mode--defun-name (node)
+(defun heex-ts--defun-name (node)
   "Return the name of the defun NODE.
 Return nil if NODE is not a defun node or doesn't have a name."
   (pcase (treesit-node-type node)
@@ -144,6 +129,18 @@ Return nil if NODE is not a defun node or doesn't have a name."
       (treesit-node-text
        (treesit-node-child (treesit-node-child node 0) 1) nil)))
     (_ nil)))
+
+(defun heex-ts--forward-sexp (&optional arg)
+  "Move forward across one balanced expression (sexp).
+With ARG, do it many times.  Negative ARG means move backward."
+  (or arg (setq arg 1))
+  (funcall
+   (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
+   heex-ts-sexp-regexp
+   (abs arg)))
+
+(defvar heex-ts-mode-default-grammar-sources
+  '((heex . ("https://github.com/phoenixframework/tree-sitter-heex.git"))))
 
 (defun heex-ts-install-grammar ()
   "Experimental function to install the tree-sitter-heex grammar."
@@ -168,46 +165,24 @@ Return nil if NODE is not a defun node or doesn't have a name."
              " "
              "tree-sitter library is not compiled with Emacs"))))
 
-(defun heex-ts-mode-treesit-ready-p ()
-  (let ((language-version 14))
-    (and (treesit-ready-p 'heex)
-         (if (< (treesit-language-abi-version 'heex) language-version)
-             (progn
-               (display-warning
-                'treesit
-                (format "Cannot activate tree-sitter for %s, because tree-sitter language version %s or later is required" "heex-ts-mode" language-version))
-               nil)
-           t))))
-
-(defun heex-ts-mode--forward-sexp (&optional arg)
-  (interactive "^p")
-  (or arg (setq arg 1))
-  (funcall
-   (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
-   heex-ts-mode-sexp-regexp
-   (abs arg)))
-
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode))
+(define-derived-mode heex-ts-mode html-mode "HEEx"
+  "Major mode for editing HEEx, powered by tree-sitter."
+  :group 'heex-ts
 
-;;;###autoload
-(define-derived-mode heex-ts-mode html-mode "Heex"
-  "Major mode for editing Heex, powered by tree-sitter."
-  :group 'heex
-
-  (when (heex-ts-mode-treesit-ready-p)
+  (when (treesit-ready-p 'heex)
     (treesit-parser-create 'heex)
 
     ;; Comments
     (setq-local treesit-text-type-regexp
                 (regexp-opt '("comment" "text")))
 
-    (setq-local forward-sexp-function #'heex-ts-mode--forward-sexp)
+    (setq-local forward-sexp-function #'heex-ts--forward-sexp)
 
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
                 (rx bol (or "component" "tag" "slot") eol))
-    (setq-local treesit-defun-name-function #'heex-ts-mode--defun-name)
+    (setq-local treesit-defun-name-function #'heex-ts--defun-name)
 
     ;; Imenu
     (setq-local treesit-simple-imenu-settings
@@ -215,9 +190,9 @@ Return nil if NODE is not a defun node or doesn't have a name."
                   ("Slot" "\\`slot\\'" nil nil)
                   ("Tag" "\\`tag\\'" nil nil)))
 
-    (setq-local treesit-font-lock-settings heex-ts-mode--font-lock-settings)
+    (setq-local treesit-font-lock-settings heex-ts--font-lock-settings)
 
-    (setq-local treesit-simple-indent-rules heex-ts-mode--indent-rules)
+    (setq-local treesit-simple-indent-rules heex-ts--indent-rules)
 
     (setq-local treesit-font-lock-feature-list
                 '(( heex-comment heex-keyword heex-doctype )
@@ -225,6 +200,11 @@ Return nil if NODE is not a defun node or doesn't have a name."
                   () ()))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'heex)
+    ;; Both .heex and the deprecated .leex files should work
+    ;; with the tree-sitter-heex grammar.
+    (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode)))
 
 (provide 'heex-ts-mode)
 ;;; heex-ts-mode.el ends here
