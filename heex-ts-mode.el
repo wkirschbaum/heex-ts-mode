@@ -156,9 +156,7 @@ With ARG, do it many times.  Negative ARG means move backward."
                       "downloaded and installed "
                       "%s, proceed?")
               (cadr (assoc 'heex treesit-language-source-alist))))
-            (progn
-              (treesit-install-language-grammar 'elixir)
-              (treesit-install-language-grammar 'heex))))
+            (treesit-install-language-grammar 'heex)))
     (display-warning
      'treesit
      (concat "Cannot install grammar because"
@@ -201,6 +199,7 @@ With ARG, do it many times.  Negative ARG means move backward."
 
     (treesit-major-mode-setup)))
 
+;;;###autoload
 (if (treesit-ready-p 'heex)
     ;; Both .heex and the deprecated .leex files should work
     ;; with the tree-sitter-heex grammar.

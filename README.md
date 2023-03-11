@@ -15,7 +15,10 @@ grammar for HEEx found at https://github.com/phoenixframework/tree-sitter-heex.
 
 Emacs 29.1 or above with tree-sitter support is required. 
 
-Tree-sitter starter guide: https://git.savannah.gnu.org/cgit/emacs.git/tree/admin/notes/tree-sitter/starter-guide?h=emacs-29
+Tree-sitter starter guide:
+https://git.savannah.gnu.org/cgit/emacs.git/tree/admin/notes/tree-sitter/starter-guide?h=emacs-29
+
+You can install the tree-sitter HEEx grammar by running: `M-x heex-ts-install-grammar`.
 
 ## Development
 
