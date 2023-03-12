@@ -2,6 +2,8 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![MELPA](https://melpa.org/packages/heex-ts-mode-badge.svg)](https://melpa.org/#/heex-ts-mode)
+![CI](https://github.com/wkirschbaum/heex-ts-mode/actions/workflows/ci.yml/badge.svg)
+
 
 Using [tree-sitter](https://tree-sitter.github.io/tree-sitter/) for font-lock, indentation, imenu and navigation.
 
