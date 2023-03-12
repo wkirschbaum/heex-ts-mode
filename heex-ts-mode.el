@@ -50,7 +50,7 @@
   :safe 'integerp
   :group 'heex-ts)
 
-(defconst heex-ts-sexp-regexp
+(defconst heex-ts--sexp-regexp
   (rx bol
       (or "directive" "tag" "component" "slot"
           "attribute" "attribute_value" "quoted_attribute_value")
@@ -136,7 +136,7 @@ With ARG, do it many times.  Negative ARG means move backward."
   (or arg (setq arg 1))
   (funcall
    (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
-   heex-ts-sexp-regexp
+   heex-ts--sexp-regexp
    (abs arg)))
 
 (defvar heex-ts-mode-default-grammar-sources
