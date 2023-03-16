@@ -71,8 +71,7 @@
             (save-excursion
               (goto-char (treesit-node-start parent))
               (back-to-indentation)
-              (point))
-            )) 0)
+              (point)))) 0)
        ((node-is "end_tag") parent-bol 0)
        ((node-is "end_component") parent-bol 0)
        ((node-is "end_slot") parent-bol 0)
@@ -200,10 +199,7 @@ With ARG, do it many times.  Negative ARG means move backward."
     (treesit-major-mode-setup)))
 
 ;;;###autoload
-(if (treesit-ready-p 'heex)
-    ;; Both .heex and the deprecated .leex files should work
-    ;; with the tree-sitter-heex grammar.
-    (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode)))
+(add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode))
 
 (provide 'heex-ts-mode)
 ;;; heex-ts-mode.el ends here
