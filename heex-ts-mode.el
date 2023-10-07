@@ -3,9 +3,9 @@
 ;; Copyright (C) 2022, 2023 Wilhelm H Kirschbaum
 
 ;; Author           : Wilhelm H Kirschbaum
-;; Version          : 1.2
+;; Version          : 1.3
 ;; URL              : https://github.com/wkirschbaum/elixir-ts-mode
-;; Package-Requires : ((emacs "29"))
+;; Package-Requires : ((emacs "29.1"))
 ;; Created          : November 2022
 ;; Keywords         : heex languages tree-sitter
 
@@ -71,7 +71,8 @@
             (save-excursion
               (goto-char (treesit-node-start parent))
               (back-to-indentation)
-              (point)))) 0)
+              (point))
+            )) 0)
        ((node-is "end_tag") parent-bol 0)
        ((node-is "end_component") parent-bol 0)
        ((node-is "end_slot") parent-bol 0)
@@ -171,8 +172,9 @@ With ARG, do it many times.  Negative ARG means move backward."
     (treesit-parser-create 'heex)
 
     ;; Comments
-    (setq-local treesit-text-type-regexp
-                (regexp-opt '("comment" "text")))
+    (setq-local treesit-thing-settings
+                `((heex
+                   (text ,(regexp-opt '("comment" "text"))))))
 
     (setq-local forward-sexp-function #'heex-ts--forward-sexp)
 
@@ -202,4 +204,5 @@ With ARG, do it many times.  Negative ARG means move backward."
 (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode))
 
 (provide 'heex-ts-mode)
+
 ;;; heex-ts-mode.el ends here
