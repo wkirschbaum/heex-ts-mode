@@ -1,3 +1,4 @@
+
 ;;; heex-ts-mode.el --- Major mode for Heex with tree-sitter support -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022-2024 Wilhelm H Kirschbaum
@@ -103,13 +104,13 @@
      `([(tag_name) (slot_name)] @font-lock-function-name-face)
      :language 'heex
      :feature 'heex-attribute
-     `((attribute_name) @font-lock-variable-name-face)
+     `((attribute_name) @font-lock-type-face)
      :language 'heex
      :feature 'heex-keyword
      `((special_attribute_name) @font-lock-keyword-face)
      :language 'heex
      :feature 'heex-string
-     `([(attribute_value) (quoted_attribute_value)] @font-lock-constant-face)
+     `([(attribute_value) (quoted_attribute_value)] @font-lock-string-face)
      :language 'heex
      :feature 'heex-component
      `([
