@@ -4,6 +4,10 @@
 [![MELPA](https://melpa.org/packages/heex-ts-mode-badge.svg)](https://melpa.org/#/heex-ts-mode)
 ![CI](https://github.com/wkirschbaum/heex-ts-mode/actions/workflows/ci.yml/badge.svg)
 
+> [!NOTE]  
+> This package is a backport from Emacs core for the use with Emacs 29.1. Please report bugs or submit patches to the Emacs directly: https://www.gnu.org/software/emacs/manual/html_node/emacs/Bugs.html.
+
+
 
 Using [tree-sitter](https://tree-sitter.github.io/tree-sitter/) for font-lock, indentation, imenu and navigation.
 
